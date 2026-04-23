@@ -43,6 +43,9 @@ db.serialize(() => {
 });
 
 const app = express();
+app.use(cors());
+app.use(express.json());
+
 app.get('/', (req, res) => {
   res.send('Quality Data Backend is running on port 3000. API endpoints: /api/qualities');
 });

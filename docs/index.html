@@ -202,15 +202,11 @@ function locLabel(l){return l==='F1-A'?'F1 Section A':l==='F1-B'?'F1 Section B':
 async function loadData(){
   try {
     const response = await fetch(`${API_BASE}/qualities`);
-    if (!response.ok) throw new Error('API fetch failed');
+    if (!response.ok) throw new Error('Server returned ' + response.status);
     qualities = await response.json();
   } catch (apiError) {
-    try {
-      const stored = localStorage.getItem('qualities_v2');
-      qualities = stored ? JSON.parse(stored) : [];
-    } catch (fallbackError) {
-      qualities = [];
-    }
+    showToast('Could not reach server — data may not be synced across devices. (' + apiError.message + ')', true);
+    qualities = [];
   }
   renderStats();renderList();
 }
@@ -221,13 +217,9 @@ async function saveData(){
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ qualities })
     });
-    if (!response.ok) throw new Error('API save failed');
+    if (!response.ok) throw new Error('Server returned ' + response.status);
   } catch (apiError) {
-    try {
-      localStorage.setItem('qualities_v2', JSON.stringify(qualities));
-    } catch (storageError) {
-      showToast('Storage error', true);
-    }
+    showToast('Save failed — data was NOT persisted to the server. (' + apiError.message + ')', true);
   }
 }
 

@@ -74,14 +74,63 @@ button.danger-sm:hover{background:#FBEAEA}
 .share-btn:hover{background:var(--color-background-secondary)}
 .share-btn .opt-title{font-weight:600;color:var(--color-text-primary);font-size:13px}
 .share-btn .opt-sub{font-size:12px;color:var(--color-text-secondary);margin-top:4px}
+.login-container{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:1rem}
+.login-card{background:var(--color-background-primary);border-radius:var(--border-radius-lg);padding:2rem;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.login-title{font-size:24px;font-weight:700;color:var(--color-text-primary);text-align:center;margin-bottom:0.5rem}
+.login-subtitle{font-size:14px;color:var(--color-text-secondary);text-align:center;margin-bottom:2rem}
+.login-field{margin-bottom:1.5rem}
+.login-field label{display:block;font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em}
+.login-field input{width:100%;height:48px;padding:0 16px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-size:14px;transition:border-color 0.2s ease,box-shadow 0.2s ease}
+.login-field input:focus{outline:none;border-color:#534AB7;box-shadow:0 0 0 4px rgba(83,74,183,0.12)}
+.login-btn{width:100%;padding:12px 24px;background:#534AB7;color:#fff;border:none;border-radius:var(--border-radius-md);font-size:14px;font-weight:600;cursor:pointer;transition:background 0.2s ease}
+.login-btn:hover{background:#443991}
+.login-btn:disabled{background:#ccc;cursor:not-allowed}
+.error-message{background:#FCEBEB;border:1px solid #A32D2D;color:#791F1F;padding:12px 16px;border-radius:var(--border-radius-md);font-size:13px;margin-bottom:1rem}
+.auth-loading{display:flex;align-items:center;justify-content:center;gap:8px}
+.spinner{width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 
 <h2 class="sr-only">Quality Data Core — textile quality records management system</h2>
-<div class="page" id="root" style="position:relative;min-height:400px">
+
+<!-- Login Screen -->
+<div id="login-screen" class="login-container">
+  <div class="login-card">
+    <div class="login-title">Quality Data Core</div>
+    <div class="login-subtitle">Enter password to access the system</div>
+    
+    <div id="login-error" class="error-message" style="display:none;"></div>
+    
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="login-field">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          placeholder="Enter your password"
+          required
+          autocomplete="current-password"
+        >
+      </div>
+      
+      <button type="submit" class="login-btn" id="login-btn">
+        <span id="login-text">Sign In</span>
+        <div id="login-loading" class="auth-loading" style="display:none;">
+          <div class="spinner"></div>
+          <span>Authenticating...</span>
+        </div>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Main App (hidden until authenticated) -->
+<div class="page" id="root" style="position:relative;min-height:400px;display:none;">
 
 <div class="tab-bar">
   <button class="tab active" id="tab-list" onclick="switchTab('list')">All Qualities</button>
   <button class="tab" id="tab-add" onclick="switchTab('add')">+ Add Quality</button>
+  <button class="tab" onclick="handleLogout()" style="margin-left:auto;background:#FCEBEB;color:#A32D2D;border-color:#F0B1B1;">Logout</button>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -175,7 +224,107 @@ button.danger-sm:hover{background:#FBEAEA}
 <script>
 let qualities=[];
 let openDetailId=null;
-const API_BASE='https://quality-data-app-production.up.railway.app/api';
+const AUTH_API_BASE='http://localhost:3000/api';
+const DATA_API_BASE='https://quality-data-app-production.up.railway.app/api';
+
+// Authentication functions
+async function checkAuthStatus() {
+  try {
+    const response = await fetch(`${AUTH_API_BASE}/auth/status`, {
+      credentials: 'include'
+    });
+    const data = await response.json();
+    return data.authenticated;
+  } catch (error) {
+    console.error('Auth check failed:', error);
+    return false;
+  }
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+  
+  const password = document.getElementById('password').value;
+  const loginBtn = document.getElementById('login-btn');
+  const loginText = document.getElementById('login-text');
+  const loginLoading = document.getElementById('login-loading');
+  const loginError = document.getElementById('login-error');
+  
+  // Show loading state
+  loginBtn.disabled = true;
+  loginText.style.display = 'none';
+  loginLoading.style.display = 'flex';
+  loginError.style.display = 'none';
+  
+  try {
+    const response = await fetch(`${AUTH_API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ password })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok && data.success) {
+      // Login successful, show main app
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('root').style.display = 'block';
+      await loadData();
+    } else {
+      // Login failed
+      loginError.textContent = data.error || 'Login failed. Please check your password.';
+      loginError.style.display = 'block';
+    }
+  } catch (error) {
+    loginError.textContent = 'Network error. Please try again.';
+    loginError.style.display = 'block';
+  } finally {
+    // Reset loading state
+    loginBtn.disabled = false;
+    loginText.style.display = 'inline';
+    loginLoading.style.display = 'none';
+  }
+}
+
+async function handleLogout() {
+  if (!confirm('Are you sure you want to logout?')) return;
+  
+  try {
+    await fetch(`${AUTH_API_BASE}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+  
+  // Show login screen and hide main app
+  document.getElementById('root').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('password').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  
+  // Clear app data
+  qualities = [];
+  openDetailId = null;
+}
+
+// Initialize app by checking authentication
+async function initializeApp() {
+  const isAuthenticated = await checkAuthStatus();
+  
+  if (isAuthenticated) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('root').style.display = 'block';
+    await loadData();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('root').style.display = 'none';
+  }
+}
 
 const FACTORIES={
   F1:{sections:['Section A (Loom 1–24)','Section B (Loom 25–46)'],sectionKeys:['F1-A','F1-B'],loomRanges:{'F1-A':[1,24],'F1-B':[25,46]}},
@@ -201,8 +350,17 @@ function locLabel(l){return l==='F1-A'?'F1 Section A':l==='F1-B'?'F1 Section B':
 
 async function loadData(){
   try {
-    const response = await fetch(`${API_BASE}/qualities`);
-    if (!response.ok) throw new Error('Server returned ' + response.status);
+    const response = await fetch(`${DATA_API_BASE}/qualities`, {
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Session expired, redirect to login
+        handleLogout();
+        return;
+      }
+      throw new Error('Server returned ' + response.status);
+    }
     qualities = await response.json();
   } catch (apiError) {
     showToast('Could not reach server — data may not be synced across devices. (' + apiError.message + ')', true);
@@ -212,12 +370,20 @@ async function loadData(){
 }
 async function saveData(){
   try {
-    const response = await fetch(`${API_BASE}/qualities/bulk`, {
+    const response = await fetch(`${DATA_API_BASE}/qualities/bulk`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ qualities })
     });
-    if (!response.ok) throw new Error('Server returned ' + response.status);
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Session expired, redirect to login
+        handleLogout();
+        return;
+      }
+      throw new Error('Server returned ' + response.status);
+    }
   } catch (apiError) {
     showToast('Save failed — data was NOT persisted to the server. (' + apiError.message + ')', true);
   }
@@ -517,5 +683,5 @@ function saveQuality(){
 }
 
 document.getElementById('f-date').valueAsDate=new Date();
-loadData();
+initializeApp();
 </script>

@@ -71,11 +71,8 @@ function requireAuth(req, res, next) {
   res.status(401).json({ error: 'Authentication required' });
 }
 
-// Serve static files from docs directory
-app.use(express.static(path.join(__dirname, 'docs')));
-
 app.get('/', (req, res) => {
-  res.send('Quality Data Backend is running on port 3000. API endpoints: /api/qualities');
+  res.send('Quality Data Backend with Authentication is running. API endpoints: /api/qualities, /api/auth/*');
 });
 
 // Authentication endpoints
@@ -179,5 +176,5 @@ app.put('/api/qualities/bulk', requireAuth, (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Quality Data backend listening on http://localhost:${PORT}`);
+  console.log(`Quality Data backend with authentication listening on http://localhost:${PORT}`);
 });

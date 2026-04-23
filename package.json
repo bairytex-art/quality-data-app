@@ -4,7 +4,8 @@
   "description": "Backend service for Quality Data Core",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server-with-auth.js",
+    "start-dev": "node server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

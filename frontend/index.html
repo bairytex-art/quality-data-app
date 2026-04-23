@@ -1,0 +1,529 @@
+
+<style>
+:root{
+  --color-background: #F5F7FB;
+  --color-background-primary: #FFFFFF;
+  --color-background-secondary: #F3F4F8;
+  --color-border-secondary: #D9D9E5;
+  --color-border-tertiary: #E5E7EB;
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #6B7280;
+  --border-radius-sm: 8px;
+  --border-radius-md: 14px;
+  --border-radius-lg: 18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--color-background);color:var(--color-text-primary);}
+body{line-height:1.5;-webkit-font-smoothing:antialiased;}
+.page{max-width:1120px;margin:0 auto;padding:1.5rem 1rem 2.5rem;position:relative;min-height:420px}
+.tab-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.75rem;border-bottom:1px solid var(--color-border-tertiary);padding-bottom:.25rem}
+.tab{padding:10px 18px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .2s ease,border-color .2s ease}
+.tab.active{color:var(--color-text-primary);border-bottom:2px solid #534AB7;font-weight:600}
+.section{display:none}
+.section.active{display:block}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:1.25rem}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;color:var(--color-text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select{width:100%;height:42px;padding:0 12px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-size:14px;transition:border-color .2s ease,box-shadow .2s ease}
+.field input:focus,.field select:focus{outline:none;border-color:#534AB7;box-shadow:0 0 0 4px rgba(83,74,183,0.12)}
+.divider{font-size:11px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.12em;margin:1.5rem 0 .75rem;padding-top:.75rem;border-top:1px solid var(--color-border-tertiary)}
+.btn-row{display:flex;gap:10px;margin-top:1rem;justify-content:flex-end;flex-wrap:wrap}
+button{font-family:inherit;transition:all .2s ease}
+button.primary{padding:10px 22px;background:#534AB7;color:#fff;border:none;border-radius:var(--border-radius-md);font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 10px 30px rgba(83,74,183,0.12)}
+button.primary:hover{background:#443991}
+button.secondary{padding:10px 18px;background:#fff;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;color:var(--color-text-secondary);cursor:pointer}
+button.secondary:hover{background:var(--color-background-secondary)}
+button.act-btn{padding:7px 12px;background:#fff;border:1px solid var(--color-border-secondary);border-radius:999px;font-size:12px;color:var(--color-text-secondary);cursor:pointer;white-space:nowrap}
+button.act-btn:hover{background:var(--color-background-secondary)}
+button.danger-sm{padding:7px 12px;background:#fff;border:1px solid #F0B1B1;border-radius:999px;font-size:12px;color:#A32D2D;cursor:pointer}
+button.danger-sm:hover{background:#FBEAEA}
+.toast{padding:12px 18px;background:#E1F5EE;border:1px solid #0F6E56;border-radius:var(--border-radius-md);font-size:13px;color:#085041;margin-bottom:1rem;display:none;box-shadow:0 12px 30px rgba(15,110,86,0.08)}
+.toast.error{background:#FCEBEB;border-color:#A32D2D;color:#791F1F}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:1.5rem}
+.stat{background:var(--color-background-primary);border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:1rem 1.1rem;box-shadow:0 6px 18px rgba(15,23,42,0.04)}
+.stat .n{font-size:24px;font-weight:700;color:var(--color-text-primary)}
+.stat .l{font-size:12px;color:var(--color-text-secondary);margin-top:4px}
+.search-row{display:flex;gap:10px;margin-bottom:1rem;align-items:center;flex-wrap:wrap}
+.search-row input{flex:1;min-width:180px;height:42px;padding:0 12px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-size:14px}
+.search-row select{height:42px;padding:0 12px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-size:14px}
+.q-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+.q-table th{text-align:left;padding:12px 14px;font-size:12px;font-weight:600;color:var(--color-text-secondary);border-bottom:1px solid var(--color-border-tertiary);white-space:nowrap}
+.q-table td{padding:12px 14px;border-bottom:1px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q-table tr:hover td{background:var(--color-background-secondary)}
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700}
+.badge-f1a{background:#EEEDFE;color:#3C3489}
+.badge-f1b{background:#E1F5EE;color:#085041}
+.badge-f2{background:#FAEEDA;color:#633806}
+.badge-siz{background:#E6F1FB;color:#0C447C}
+.badge-warp{background:#FBEAF0;color:#72243E}
+.empty{text-align:center;padding:2rem;color:var(--color-text-secondary);font-size:13px}
+.detail-panel{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.5rem;margin-top:0.75rem;box-shadow:0 18px 45px rgba(15,23,42,0.06)}
+.detail-actions{display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.detail-title{font-size:16px;font-weight:700;margin-bottom:1rem;color:var(--color-text-primary)}
+.detail-2col{width:100%;border-collapse:collapse;font-size:14px}
+.detail-2col tr{border-bottom:1px solid var(--color-border-tertiary)}
+.detail-2col tr:last-child{border-bottom:none}
+.detail-2col td:first-child{padding:10px 14px 10px 0;color:var(--color-text-secondary);font-size:12px;width:42%;white-space:nowrap}
+.detail-2col td:last-child{padding:10px 0;color:var(--color-text-primary);font-weight:600;font-size:14px}
+.overlay{display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.32);border-radius:var(--border-radius-lg);z-index:10;align-items:flex-start;justify-content:center;padding-top:2rem}
+.overlay.show{display:flex}
+.modal{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.5rem;width:100%;max-width:600px;max-height:80vh;overflow-y:auto;box-shadow:0 24px 80px rgba(15,23,42,0.12)}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:1rem}
+.share-opt{display:flex;flex-direction:column;gap:12px}
+.share-btn{text-align:left;padding:14px 16px;font-size:13px;border-radius:var(--border-radius-md);border:1px solid var(--color-border-secondary);background:#fff;cursor:pointer;width:100%}
+.share-btn:hover{background:var(--color-background-secondary)}
+.share-btn .opt-title{font-weight:600;color:var(--color-text-primary);font-size:13px}
+.share-btn .opt-sub{font-size:12px;color:var(--color-text-secondary);margin-top:4px}
+</style>
+
+<h2 class="sr-only">Quality Data Core — textile quality records management system</h2>
+<div class="page" id="root" style="position:relative;min-height:400px">
+
+<div class="tab-bar">
+  <button class="tab active" id="tab-list" onclick="switchTab('list')">All Qualities</button>
+  <button class="tab" id="tab-add" onclick="switchTab('add')">+ Add Quality</button>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div id="sec-list" class="section active">
+  <div class="stats-row">
+    <div class="stat"><div class="n" id="st-total">—</div><div class="l">Total qualities</div></div>
+    <div class="stat"><div class="n" id="st-f1a">—</div><div class="l">F1 Section A</div></div>
+    <div class="stat"><div class="n" id="st-f1b">—</div><div class="l">F1 Section B</div></div>
+    <div class="stat"><div class="n" id="st-f2">—</div><div class="l">Factory 2</div></div>
+  </div>
+  <div class="search-row">
+    <input type="text" id="search" placeholder="Search quality, mother name, loom..." oninput="renderList()">
+    <select id="filter-loc" onchange="renderList()">
+      <option value="">All locations</option>
+      <option value="F1-A">F1 Section A</option>
+      <option value="F1-B">F1 Section B</option>
+      <option value="F2">Factory 2</option>
+    </select>
+  </div>
+  <div style="overflow-x:auto">
+  <table class="q-table">
+    <colgroup>
+      <col style="width:76px"><col style="width:88px"><col style="width:126px"><col style="width:120px"><col style="width:92px"><col style="width:88px"><col style="width:190px">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Loom</th><th>Location</th><th>Quality name</th><th>Mother name</th><th>Start date</th><th>Beam type</th><th style="text-align:right">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="list-body"></tbody>
+  </table>
+  </div>
+</div>
+
+<div id="sec-add" class="section">
+  <div id="edit-banner" style="display:none;background:#EEEDFE;border:0.5px solid #534AB7;border-radius:var(--border-radius-md);padding:8px 14px;font-size:13px;color:#3C3489;margin-bottom:1rem">
+    Editing mode — changes will update the existing record.
+  </div>
+  <input type="hidden" id="edit-id">
+  <div class="divider">Location & Loom</div>
+  <div class="form-grid">
+    <div class="field"><label>Factory</label>
+      <select id="f-factory" onchange="updateLoomRange()">
+        <option value="">Select factory</option>
+        <option value="F1">Factory 1</option>
+        <option value="F2">Factory 2</option>
+      </select>
+    </div>
+    <div class="field"><label>Section</label><select id="f-section"><option value="">Select section</option></select></div>
+    <div class="field"><label>Loom number</label><select id="f-loom"><option value="">Select loom</option></select></div>
+    <div class="field"><label>Start date</label><input type="date" id="f-date"></div>
+  </div>
+  <div class="divider">Quality Identity</div>
+  <div class="form-grid">
+    <div class="field"><label>Quality name</label><input type="text" id="f-qname" placeholder="e.g. Alwani (NEW)"></div>
+    <div class="field"><label>Mother name</label><input type="text" id="f-mname" placeholder="e.g. Cotton Plain"></div>
+    <div class="field"><label>Design</label><input type="text" id="f-design" placeholder="e.g. Plain / Twill"></div>
+    <div class="field"><label>Beam type</label>
+      <select id="f-beam"><option value="">Select</option><option value="Sizing">Sizing</option><option value="Warping">Warping</option></select>
+    </div>
+  </div>
+  <div class="divider">Technical Specifications</div>
+  <div class="form-grid">
+    <div class="field"><label>Warp yarn</label><input type="text" id="f-warp" placeholder="e.g. 20/1 CD"></div>
+    <div class="field"><label>Weft yarn</label><input type="text" id="f-weft" placeholder="e.g. 16/1 CD"></div>
+    <div class="field"><label>Ends</label><input type="number" id="f-ends" placeholder="e.g. 3200"></div>
+    <div class="field"><label>Reed count</label><input type="text" id="f-reed" placeholder="e.g. 80/2"></div>
+    <div class="field"><label>Pick on loom</label><input type="number" id="f-pick-loom" placeholder="e.g. 56"></div>
+    <div class="field"><label>Pick on table</label><input type="number" id="f-pick-table" placeholder="e.g. 60"></div>
+    <div class="field"><label>Width (inches)</label><input type="number" id="f-width" placeholder="e.g. 63"></div>
+    <div class="field"><label>Quality weight (g/m)</label><input type="number" id="f-weight" placeholder="e.g. 145" step="0.01"></div>
+  </div>
+  <div class="divider">Yarn Details</div>
+  <div class="form-grid">
+    <div class="field"><label>Name text yarn</label><input type="text" id="f-name-text" placeholder="Yarn for name text"></div>
+    <div class="field"><label>Selvage bg yarn</label><input type="text" id="f-sel-bg" placeholder="Yarn for selvage bg"></div>
+  </div>
+  <div class="btn-row">
+    <button class="secondary" onclick="cancelForm()">Cancel</button>
+    <button class="primary" id="save-btn" onclick="saveQuality()">Save Quality</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal-body"></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+let qualities=[];
+let openDetailId=null;
+const API_BASE='https://quality-data-app-production.up.railway.app/api';
+
+const FACTORIES={
+  F1:{sections:['Section A (Loom 1–24)','Section B (Loom 25–46)'],sectionKeys:['F1-A','F1-B'],loomRanges:{'F1-A':[1,24],'F1-B':[25,46]}},
+  F2:{sections:['Section (Loom 1–16)'],sectionKeys:['F2'],loomRanges:{'F2':[1,16]}}
+};
+
+const FIELDS=[
+  ['Quality name','qualityName'],['Mother name','motherName'],['Loom','_loom'],
+  ['Location','_loc'],['Start date','startDate'],['Design','design'],
+  ['Beam type','beamType'],['Warp yarn','warpYarn'],['Weft yarn','weftYarn'],
+  ['Ends','ends'],['Reed count','reedCount'],['Pick on loom','pickLoom'],
+  ['Pick on table','pickTable'],['Width (inches)','width'],
+  ['Quality weight','_weight'],['Name text yarn','nameTextYarn'],['Selvage bg yarn','selBgYarn']
+];
+
+function fieldVal(item,key){
+  if(key==='_loom') return 'Loom '+item.loom;
+  if(key==='_loc') return locLabel(item.location);
+  if(key==='_weight') return item.qualityWeight?item.qualityWeight+' g/m':'—';
+  return item[key]||'—';
+}
+function locLabel(l){return l==='F1-A'?'F1 Section A':l==='F1-B'?'F1 Section B':l==='F2'?'Factory 2':l;}
+
+async function loadData(){
+  try {
+    const response = await fetch(`${API_BASE}/qualities`);
+    if (!response.ok) throw new Error('API fetch failed');
+    qualities = await response.json();
+  } catch (apiError) {
+    try {
+      const stored = localStorage.getItem('qualities_v2');
+      qualities = stored ? JSON.parse(stored) : [];
+    } catch (fallbackError) {
+      qualities = [];
+    }
+  }
+  renderStats();renderList();
+}
+async function saveData(){
+  try {
+    const response = await fetch(`${API_BASE}/qualities/bulk`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qualities })
+    });
+    if (!response.ok) throw new Error('API save failed');
+  } catch (apiError) {
+    try {
+      localStorage.setItem('qualities_v2', JSON.stringify(qualities));
+    } catch (storageError) {
+      showToast('Storage error', true);
+    }
+  }
+}
+
+function switchTab(t){
+  ['list','add'].forEach(x=>{
+    document.getElementById('tab-'+x).classList.toggle('active',x===t);
+    document.getElementById('sec-'+x).classList.toggle('active',x===t);
+  });
+  if(t==='list'){renderStats();renderList();}
+}
+
+function updateLoomRange(){
+  const fac=document.getElementById('f-factory').value;
+  const secSel=document.getElementById('f-section');
+  const loomSel=document.getElementById('f-loom');
+  secSel.innerHTML='<option value="">Select section</option>';
+  loomSel.innerHTML='<option value="">Select loom</option>';
+  if(!fac)return;
+  const fd=FACTORIES[fac];
+  fd.sections.forEach((s,i)=>{const o=document.createElement('option');o.value=fd.sectionKeys[i];o.textContent=s;secSel.appendChild(o);});
+  secSel.onchange=function(){
+    loomSel.innerHTML='<option value="">Select loom</option>';
+    const sk=secSel.value;if(!sk)return;
+    const range=fd.loomRanges[sk];
+    for(let i=range[0];i<=range[1];i++){const o=document.createElement('option');o.value=i;o.textContent='Loom '+i;loomSel.appendChild(o);}
+  };
+}
+
+function getLocBadge(loc){
+  const map={'F1-A':'<span class="badge badge-f1a">F1 Sec A</span>','F1-B':'<span class="badge badge-f1b">F1 Sec B</span>','F2':'<span class="badge badge-f2">Factory 2</span>'};
+  return map[loc]||loc;
+}
+function getBeamBadge(b){
+  if(b==='Sizing')return '<span class="badge badge-siz">Sizing</span>';
+  if(b==='Warping')return '<span class="badge badge-warp">Warping</span>';
+  return b||'—';
+}
+
+function renderStats(){
+  document.getElementById('st-total').textContent=qualities.length;
+  ['F1-A','F1-B','F2'].forEach((l,i)=>{
+    document.getElementById(['st-f1a','st-f1b','st-f2'][i]).textContent=qualities.filter(q=>q.location===l).length;
+  });
+}
+
+function renderList(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const loc=document.getElementById('filter-loc').value;
+  let filtered=qualities.filter(item=>{
+    const mq=!q||item.qualityName.toLowerCase().includes(q)||item.motherName.toLowerCase().includes(q)||(item.loom+'').includes(q);
+    const ml=!loc||item.location===loc;
+    return mq&&ml;
+  });
+  const tbody=document.getElementById('list-body');
+  if(!filtered.length){
+    tbody.innerHTML='<tr><td colspan="7"><div class="empty">No qualities found. Add your first quality using "+ Add Quality".</div></td></tr>';
+    return;
+  }
+  tbody.innerHTML=filtered.map(item=>`
+    <tr>
+      <td style="font-weight:500">Loom ${item.loom}</td>
+      <td>${getLocBadge(item.location)}</td>
+      <td style="font-weight:500">${item.qualityName||'—'}</td>
+      <td style="color:var(--color-text-secondary)">${item.motherName||'—'}</td>
+      <td style="color:var(--color-text-secondary)">${item.startDate||'—'}</td>
+      <td>${getBeamBadge(item.beamType)}</td>
+      <td style="text-align:right">
+        <div style="display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap">
+          <button class="act-btn" onclick="viewDetail('${item.id}')">View</button>
+          <button class="act-btn" onclick="editQuality('${item.id}')">Edit</button>
+          <button class="act-btn" onclick="shareQuality('${item.id}')">Share</button>
+          <button class="danger-sm" onclick="deleteQuality('${item.id}')">Del</button>
+        </div>
+      </td>
+    </tr>
+    ${openDetailId===item.id?'<tr><td colspan="7" style="padding:0 0 8px 0">'+renderDetail(item)+'</td></tr>':''}
+  `).join('');
+}
+
+function renderDetail(item){
+  const rows=FIELDS.map(([label,key])=>`<tr><td>${label}</td><td>${fieldVal(item,key)}</td></tr>`).join('');
+  return `<div class="detail-panel">
+    <div class="detail-title">${item.qualityName} — Full Record</div>
+    <div class="detail-actions">
+      <button class="act-btn" onclick="editQuality('${item.id}')">Edit</button>
+      <button class="act-btn" onclick="shareQuality('${item.id}')">Share / PDF / JPG</button>
+      <button class="act-btn" onclick="toggleDetail('${item.id}')">Close</button>
+    </div>
+    <table class="detail-2col">${rows}</table>
+  </div>`;
+}
+
+function toggleDetail(id){openDetailId=(openDetailId===id)?null:id;renderList();}
+function viewDetail(id){toggleDetail(id);}
+
+function editQuality(id){
+  const item=qualities.find(q=>q.id===id);if(!item)return;
+  switchTab('add');
+  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-banner').style.display='block';
+  document.getElementById('save-btn').textContent='Update Quality';
+  document.getElementById('f-factory').value=item.factory;
+  updateLoomRange();
+  setTimeout(()=>{
+    document.getElementById('f-section').value=item.location;
+    document.getElementById('f-section').dispatchEvent(new Event('change'));
+    setTimeout(()=>{document.getElementById('f-loom').value=item.loom;},50);
+  },50);
+  const map={'f-date':'startDate','f-qname':'qualityName','f-mname':'motherName','f-design':'design','f-beam':'beamType','f-warp':'warpYarn','f-weft':'weftYarn','f-ends':'ends','f-reed':'reedCount','f-pick-loom':'pickLoom','f-pick-table':'pickTable','f-width':'width','f-weight':'qualityWeight','f-name-text':'nameTextYarn','f-sel-bg':'selBgYarn'};
+  Object.entries(map).forEach(([fid,key])=>{document.getElementById(fid).value=item[key]||'';});
+}
+
+function cancelForm(){clearForm();switchTab('list');}
+
+function deleteQuality(id){
+  if(!confirm('Delete this quality record?'))return;
+  qualities=qualities.filter(q=>q.id!==id);
+  if(openDetailId===id)openDetailId=null;
+  saveData();renderStats();renderList();
+  showToast('Quality deleted.');
+}
+
+function buildCardHTML(item){
+  const rows=FIELDS.map(([label,key])=>`
+    <tr>
+      <td style="padding:7px 20px 7px 0;color:#555;font-size:13px;width:44%;border-bottom:1px solid #eee;vertical-align:top;white-space:nowrap">${label}</td>
+      <td style="padding:7px 0;font-size:13px;font-weight:600;border-bottom:1px solid #eee;color:#111">${fieldVal(item,key)}</td>
+    </tr>`).join('');
+  return `
+    <div style="background:#fff;padding:28px 32px;font-family:Arial,sans-serif;width:520px">
+      <div style="border-bottom:3px solid #534AB7;padding-bottom:12px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-end">
+        <div>
+          <div style="font-size:11px;color:#888;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">Quality Data Record</div>
+          <div style="font-size:20px;font-weight:700;color:#3C3489">${item.qualityName}</div>
+        </div>
+        <div style="font-size:11px;color:#aaa">${new Date().toLocaleDateString('en-PK')}</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse">${rows}</table>
+      <div style="margin-top:16px;font-size:10px;color:#bbb;text-align:right">Textile Quality Management System</div>
+    </div>`;
+}
+
+function shareQuality(id){
+  const item=qualities.find(q=>q.id===id);if(!item)return;
+  const body=document.getElementById('modal-body');
+  body.innerHTML=`
+    <div class="modal-title">Share — ${item.qualityName}</div>
+    <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:1rem">Kaise share karna chahte hain?</p>
+    <div class="share-opt">
+      <button class="share-btn" onclick="downloadJPG('${id}')">
+        <div class="opt-title">JPG download karo</div>
+        <div class="opt-sub">Clean card image — WhatsApp ya gallery ke liye</div>
+      </button>
+      <button class="share-btn" onclick="printQuality('${id}');closeOverlay()">
+        <div class="opt-title">Print / PDF save karo</div>
+        <div class="opt-sub">Browser print → "Save as PDF" select karo</div>
+      </button>
+      <button class="share-btn" onclick="shareWhatsApp('${id}')">
+        <div class="opt-title">WhatsApp (text format)</div>
+        <div class="opt-sub">Pura data text message ke tor par WhatsApp mein bhejo</div>
+      </button>
+      <button class="share-btn" onclick="copyText('${id}')">
+        <div class="opt-title">Clipboard copy</div>
+        <div class="opt-sub">Kahin bhi paste karo — email, notes, ya message</div>
+      </button>
+    </div>
+    <div style="margin-top:1rem;text-align:right"><button class="secondary" onclick="closeOverlay()">Close</button></div>
+  `;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function downloadJPG(id){
+  const item=qualities.find(q=>q.id===id);if(!item)return;
+  closeOverlay();
+  showToast('JPG ban raha hai...');
+  const wrapper=document.createElement('div');
+  wrapper.style.cssText='position:fixed;left:-9999px;top:0;z-index:-1;background:#fff';
+  wrapper.innerHTML=buildCardHTML(item);
+  document.body.appendChild(wrapper);
+  const card=wrapper.firstElementChild;
+  setTimeout(()=>{
+    html2canvas(card,{
+      scale:2,
+      backgroundColor:'#ffffff',
+      useCORS:true,
+      logging:false
+    }).then(canvas=>{
+      document.body.removeChild(wrapper);
+      const link=document.createElement('a');
+      link.download=(item.qualityName||'quality').replace(/[^a-z0-9]/gi,'_')+'.jpg';
+      link.href=canvas.toDataURL('image/jpeg',0.95);
+      link.click();
+      showToast('JPG download ho gaya!');
+    }).catch(()=>{
+      document.body.removeChild(wrapper);
+      showToast('JPG error — Print/PDF try karein.',true);
+    });
+  },100);
+}
+
+function buildPrintHTML(item){
+  const rows=FIELDS.map(([label,key])=>`
+    <tr>
+      <td style="padding:7px 16px 7px 0;color:#666;font-size:13px;width:44%;border-bottom:1px solid #eee;vertical-align:top">${label}</td>
+      <td style="padding:7px 0;font-size:13px;font-weight:600;border-bottom:1px solid #eee">${fieldVal(item,key)}</td>
+    </tr>`).join('');
+  return `<!DOCTYPE html><html><head><title>${item.qualityName}</title>
+  <style>body{font-family:Arial,sans-serif;margin:0;padding:24px;color:#111}
+  .header{border-bottom:2px solid #534AB7;padding-bottom:10px;margin-bottom:16px}
+  h2{margin:0;font-size:18px;color:#3C3489}
+  .sub{font-size:12px;color:#666;margin-top:4px}
+  table{width:100%;border-collapse:collapse}
+  @media print{body{padding:12px}}</style></head>
+  <body><div class="header"><h2>Quality Data Record — ${item.qualityName}</h2><div class="sub">Printed: ${new Date().toLocaleDateString('en-PK')}</div></div>
+  <table>${rows}</table></body></html>`;
+}
+
+function printQuality(id){
+  const item=qualities.find(q=>q.id===id);if(!item)return;
+  const w=window.open('','_blank','width=700,height=700');
+  w.document.write(buildPrintHTML(item));
+  w.document.close();w.focus();
+  setTimeout(()=>w.print(),400);
+}
+
+function buildTextShare(item){
+  return '*Quality Data Record*\n'+FIELDS.map(([label,key])=>`*${label}:* ${fieldVal(item,key)}`).join('\n');
+}
+
+function shareWhatsApp(id){
+  const item=qualities.find(q=>q.id===id);if(!item)return;
+  window.open('https://wa.me/?text='+encodeURIComponent(buildTextShare(item)),'_blank');
+  closeOverlay();
+}
+
+function copyText(id){
+  const item=qualities.find(q=>q.id===id);if(!item)return;
+  navigator.clipboard.writeText(buildTextShare(item)).then(()=>{showToast('Copied!');closeOverlay();}).catch(()=>{showToast('Copy failed.',true);closeOverlay();});
+}
+
+function closeOverlay(){document.getElementById('overlay').classList.remove('show');}
+
+function showToast(msg,isErr=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast'+(isErr?' error':'');t.style.display='block';
+  setTimeout(()=>t.style.display='none',3000);
+}
+
+function clearForm(){
+  ['f-factory','f-section','f-loom','f-date','f-qname','f-mname','f-design','f-beam',
+   'f-warp','f-weft','f-ends','f-reed','f-pick-loom','f-pick-table',
+   'f-width','f-weight','f-name-text','f-sel-bg'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('f-section').innerHTML='<option value="">Select section</option>';
+  document.getElementById('f-loom').innerHTML='<option value="">Select loom</option>';
+  document.getElementById('edit-id').value='';
+  document.getElementById('edit-banner').style.display='none';
+  document.getElementById('save-btn').textContent='Save Quality';
+}
+
+function saveQuality(){
+  const factory=document.getElementById('f-factory').value;
+  const location=document.getElementById('f-section').value;
+  const loom=document.getElementById('f-loom').value;
+  const qualityName=document.getElementById('f-qname').value.trim();
+  if(!factory||!location||!loom||!qualityName){showToast('Factory, section, loom aur quality name zaroori hain.',true);return;}
+  const editId=document.getElementById('edit-id').value;
+  const data={
+    factory,location,loom:parseInt(loom),
+    startDate:document.getElementById('f-date').value,
+    qualityName,
+    motherName:document.getElementById('f-mname').value.trim(),
+    design:document.getElementById('f-design').value.trim(),
+    beamType:document.getElementById('f-beam').value,
+    warpYarn:document.getElementById('f-warp').value.trim(),
+    weftYarn:document.getElementById('f-weft').value.trim(),
+    ends:document.getElementById('f-ends').value,
+    reedCount:document.getElementById('f-reed').value.trim(),
+    pickLoom:document.getElementById('f-pick-loom').value,
+    pickTable:document.getElementById('f-pick-table').value,
+    width:document.getElementById('f-width').value,
+    qualityWeight:document.getElementById('f-weight').value,
+    nameTextYarn:document.getElementById('f-name-text').value.trim(),
+    selBgYarn:document.getElementById('f-sel-bg').value.trim(),
+  };
+  if(editId){
+    const idx=qualities.findIndex(q=>q.id===editId);
+    if(idx>-1){qualities[idx]={...qualities[idx],...data};showToast('"'+qualityName+'" update ho gaya!');}
+  } else {
+    data.id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    qualities.push(data);showToast('"'+qualityName+'" save ho gaya!');
+  }
+  saveData();clearForm();switchTab('list');
+}
+
+document.getElementById('f-date').valueAsDate=new Date();
+loadData();
+</script>

@@ -1,5 +1,44 @@
 
 <style>
+/* ── Login screen ── */
+#login-screen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;background:var(--color-background);
+}
+.login-card{
+  background:#fff;border:1px solid var(--color-border-secondary);
+  border-radius:var(--border-radius-lg);padding:2.5rem 2rem;
+  width:100%;max-width:380px;
+  box-shadow:0 24px 80px rgba(15,23,42,0.10);
+}
+.login-logo{
+  font-size:22px;font-weight:700;color:#534AB7;margin-bottom:.25rem;
+}
+.login-sub{
+  font-size:13px;color:var(--color-text-secondary);margin-bottom:2rem;
+}
+.login-field{display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem;}
+.login-field label{font-size:12px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em}
+.login-field input{
+  height:44px;padding:0 14px;border:1px solid var(--color-border-secondary);
+  border-radius:var(--border-radius-md);font-size:14px;font-family:inherit;
+  color:var(--color-text-primary);background:#fff;
+  transition:border-color .2s ease,box-shadow .2s ease;
+}
+.login-field input:focus{outline:none;border-color:#534AB7;box-shadow:0 0 0 4px rgba(83,74,183,0.12)}
+.login-btn{
+  width:100%;height:44px;background:#534AB7;color:#fff;border:none;
+  border-radius:var(--border-radius-md);font-size:14px;font-weight:600;
+  font-family:inherit;cursor:pointer;transition:background .2s ease;
+}
+.login-btn:hover{background:#443991}
+.login-btn:disabled{background:#9B95D4;cursor:not-allowed}
+.login-error{
+  font-size:13px;color:#A32D2D;background:#FCEBEB;border:1px solid #F0B1B1;
+  border-radius:var(--border-radius-md);padding:10px 14px;margin-top:1rem;
+  display:none;
+}
+
 :root{
   --color-background: #F5F7FB;
   --color-background-primary: #FFFFFF;
@@ -76,12 +115,31 @@ button.danger-sm:hover{background:#FBEAEA}
 .share-btn .opt-sub{font-size:12px;color:var(--color-text-secondary);margin-top:4px}
 </style>
 
+<!-- Login screen — shown until authenticated -->
+<div id="login-screen" style="display:none">
+  <div class="login-card">
+    <div class="login-logo">Quality Data Core</div>
+    <div class="login-sub">Textile quality records management</div>
+    <div class="login-field">
+      <label for="login-password">Password</label>
+      <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Login</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- Main app — hidden until authenticated -->
+<div id="app-screen" style="display:none">
+
 <h2 class="sr-only">Quality Data Core — textile quality records management system</h2>
 <div class="page" id="root" style="position:relative;min-height:400px">
 
 <div class="tab-bar">
   <button class="tab active" id="tab-list" onclick="switchTab('list')">All Qualities</button>
   <button class="tab" id="tab-add" onclick="switchTab('add')">+ Add Quality</button>
+  <button class="tab" style="margin-left:auto;color:#A32D2D" onclick="doLogout()">Logout</button>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -170,12 +228,79 @@ button.danger-sm:hover{background:#FBEAEA}
   <div class="modal" id="modal-body"></div>
 </div>
 </div>
+</div><!-- /#app-screen -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 let qualities=[];
 let openDetailId=null;
 const API_BASE='https://quality-data-app-production.up.railway.app/api';
+
+// ── Auth helpers ──────────────────────────────────────────────────────────────
+function getToken(){ return sessionStorage.getItem('auth_token'); }
+function setToken(t){ sessionStorage.setItem('auth_token',t); }
+function clearToken(){ sessionStorage.removeItem('auth_token'); }
+
+function authHeaders(){
+  const t=getToken();
+  return t ? {'Content-Type':'application/json','Authorization':'Bearer '+t}
+           : {'Content-Type':'application/json'};
+}
+
+function handleUnauthorized(){
+  clearToken();
+  showLoginScreen();
+}
+
+function showLoginScreen(){
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-password').value='';
+  document.getElementById('login-error').style.display='none';
+  setTimeout(()=>document.getElementById('login-password').focus(),50);
+}
+
+function showAppScreen(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+}
+
+async function doLogin(){
+  const pw=document.getElementById('login-password').value;
+  const btn=document.getElementById('login-btn');
+  const errEl=document.getElementById('login-error');
+  if(!pw){ errEl.textContent='Please enter the password.'; errEl.style.display='block'; return; }
+  btn.disabled=true; btn.textContent='Logging in…'; errEl.style.display='none';
+  try {
+    const res=await fetch(`${API_BASE}/login`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({password:pw})
+    });
+    const data=await res.json();
+    if(!res.ok){ errEl.textContent=data.error||'Login failed.'; errEl.style.display='block'; return; }
+    setToken(data.token);
+    showAppScreen();
+    loadData();
+  } catch(e){
+    errEl.textContent='Could not reach server. Check your connection.';
+    errEl.style.display='block';
+  } finally {
+    btn.disabled=false; btn.textContent='Login';
+  }
+}
+
+async function doLogout(){
+  try {
+    await fetch(`${API_BASE}/logout`,{
+      method:'POST',
+      headers:authHeaders()
+    });
+  } catch(_){}
+  clearToken();
+  showLoginScreen();
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 const FACTORIES={
   F1:{sections:['Section A (Loom 1–24)','Section B (Loom 25–46)'],sectionKeys:['F1-A','F1-B'],loomRanges:{'F1-A':[1,24],'F1-B':[25,46]}},
@@ -201,7 +326,10 @@ function locLabel(l){return l==='F1-A'?'F1 Section A':l==='F1-B'?'F1 Section B':
 
 async function loadData(){
   try {
-    const response = await fetch(`${API_BASE}/qualities`);
+    const response = await fetch(`${API_BASE}/qualities`, {
+      headers: authHeaders()
+    });
+    if (response.status === 401) { handleUnauthorized(); return; }
     if (!response.ok) throw new Error('Server returned ' + response.status);
     qualities = await response.json();
   } catch (apiError) {
@@ -214,9 +342,10 @@ async function saveData(){
   try {
     const response = await fetch(`${API_BASE}/qualities/bulk`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ qualities })
     });
+    if (response.status === 401) { handleUnauthorized(); return; }
     if (!response.ok) throw new Error('Server returned ' + response.status);
   } catch (apiError) {
     showToast('Save failed — data was NOT persisted to the server. (' + apiError.message + ')', true);
@@ -517,5 +646,12 @@ function saveQuality(){
 }
 
 document.getElementById('f-date').valueAsDate=new Date();
-loadData();
+
+// On page load: show login or app depending on whether a token exists in sessionStorage
+if(getToken()){
+  showAppScreen();
+  loadData();
+} else {
+  showLoginScreen();
+}
 </script>

@@ -3,8 +3,6 @@ const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
-const session = require('express-session');
-const bcrypt = require('bcryptjs');
 
 const PORT = process.env.PORT || 3000;
 const dataDir = path.join(__dirname, 'data');
@@ -45,31 +43,8 @@ db.serialize(() => {
 });
 
 const app = express();
-
-// Session configuration
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'quality-data-secret-key-change-in-production',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { 
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
-
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
-
-// Authentication middleware
-function requireAuth(req, res, next) {
-  if (req.session && req.session.authenticated) {
-    return next();
-  }
-  res.status(401).json({ error: 'Authentication required' });
-}
 
 // Serve static files from docs directory
 app.use(express.static(path.join(__dirname, 'docs')));
@@ -78,45 +53,7 @@ app.get('/', (req, res) => {
   res.send('Quality Data Backend is running on port 3000. API endpoints: /api/qualities');
 });
 
-// Authentication endpoints
-app.post('/api/auth/login', async (req, res) => {
-  const { password } = req.body;
-  
-  // Default password - you should change this in production
-  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'grace1588@';
-  
-  if (!password) {
-    return res.status(400).json({ error: 'Password is required' });
-  }
-  
-  if (password === ADMIN_PASSWORD) {
-    req.session.authenticated = true;
-    req.session.save(err => {
-      if (err) {
-        return res.status(500).json({ error: 'Session save failed' });
-      }
-      res.json({ success: true, message: 'Authentication successful' });
-    });
-  } else {
-    res.status(401).json({ error: 'Invalid password' });
-  }
-});
-
-app.post('/api/auth/logout', (req, res) => {
-  req.session.destroy(err => {
-    if (err) {
-      return res.status(500).json({ error: 'Logout failed' });
-    }
-    res.json({ success: true, message: 'Logged out successfully' });
-  });
-});
-
-app.get('/api/auth/status', (req, res) => {
-  res.json({ authenticated: !!(req.session && req.session.authenticated) });
-});
-
-// Protected API endpoints
-app.get('/api/qualities', requireAuth, (req, res) => {
+app.get('/api/qualities', (req, res) => {
   db.all('SELECT * FROM qualities ORDER BY ROWID DESC', [], (err, rows) => {
     if (err) {
       return res.status(500).json({ error: 'Unable to fetch qualities.' });
@@ -125,7 +62,7 @@ app.get('/api/qualities', requireAuth, (req, res) => {
   });
 });
 
-app.put('/api/qualities/bulk', requireAuth, (req, res) => {
+app.put('/api/qualities/bulk', (req, res) => {
   const qualities = Array.isArray(req.body.qualities) ? req.body.qualities : [];
 
   db.serialize(() => {
